@@ -66,7 +66,7 @@ def PreAllocate(nd:list, av:list, al:list, re:list):
 
 def SafetyDetect(nd:list,av:list,al:list):
     # step 1
-    work = av
+    work = list(av) # 获得值，而不是引用
     finish = [False]*len(nd)
     all_true_flag = False
 
@@ -99,8 +99,8 @@ def SafetyDetect(nd:list,av:list,al:list):
 
 if __name__ =='__main__':
 
-    Request = [1, 0, 2]
-
-    re2nd(Request,1,Need)
+    # Request = [1, 0, 2]
+    Request = [0,1,1]
+    re2nd(Request,0,Need)
     re2av(Request,Available)
     PreAllocate(Need,Available,Allocation,Request)
