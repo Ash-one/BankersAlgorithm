@@ -10,7 +10,7 @@ class Banker():
                     [2, 2, 2],
                     [4, 3, 3]]
 
-        self.Allocation = [[0, 1, 1],
+        self.Allocation = [[0, 1, 0],
                            [2, 0, 0],
                            [3, 0, 2],
                            [2, 1, 1],
@@ -25,6 +25,8 @@ class Banker():
         self.Available = [3, 3, 2]
         self.parent = parent
 
+    # compare request to it's need
+    # 任意一项请求的资源不能超过事先规定的大小
     def re2nd(self, re: list, i: int):
         ND = self.Need[i]
         for j in range(len(re)):
@@ -35,6 +37,8 @@ class Banker():
                 return False
         return True
 
+    # compare request to available
+    # 任意一项请求的资源不能超过当前可用的资源
     def re2av(self, re: list):
         for j in range(len(re)):
             if re[j] <= self.Available[j]:
@@ -44,13 +48,15 @@ class Banker():
                 return False
         return True
 
+    # 进行预分配并执行安全性算法
+    # 如果安全则通过，如果不安全则回退操作到分配前
     def PreAllocate(self, re: list,index:int):
         i = index
         for j in range(len(re)):
             self.Allocation[i][j] += re[j]
             self.Need[i][j] -= re[j]
             self.Available[j] -= re[j]
-        if self.SafetyDetect():
+        if self.SecurityDetect():
             print('请求成功，已分配')
             return True
         else:
@@ -61,33 +67,43 @@ class Banker():
             print('预分配失败，不安全状态')
             return False
 
-    def SafetyDetect(self):
+    def SecurityDetect(self):
         # step 1
         work = list(self.Available)     # 获得值，而不是引用
         print(work)
         finish = [False] * len(self.Need)
-        all_true_flag = False
+        finish_change_flag = True
 
         # step 2
-        while (not all_true_flag):
+        while (finish_change_flag):
+            miniflag = 0
+            finish_change_flag = False
             for i in range(len(self.Need)):
                 if finish[i] == False:
-                    miniflag = 0
                     for j in range(len(work)):
                         if self.Need[i][j] <= work[j]:
                             miniflag += 1
                         else:
+                            miniflag = 0
                             break
                     if miniflag == len(work):
                         # step 3
                         for j in range(len(work)):
                             work[j] += self.Allocation[i][j]
                             finish[i] = True
-            for f in finish:
-                if f == False:
-                    return False
-                else:
-                    all_true_flag = True
+                            finish_change_flag = True
+
+        if self.judgeAllTrue(finish):
+            return True
+        else:
+            return False
+
+    def judgeAllTrue(self,l:list):
+        for i in l:
+            if i == True:
+                continue
+            else:
+                return False
         return True
 
     def request(self, re: list, index: int):
@@ -192,3 +208,12 @@ class myApp(wx.App):
 if __name__ == '__main__':
     app = myApp()
     app.MainLoop()
+
+    # Request:	[1, 0, 2] 1
+    # 请求成功，已分配
+    # Request:	[3, 3, 0] 4
+    # 请求失败，当前可用资源不足，请等待
+    # Request:	[0, 2, 0] 0
+    # 预分配失败，不安全状态
+    # Request:	[0, 1, 0] 0
+    # 请求成功，已分配
